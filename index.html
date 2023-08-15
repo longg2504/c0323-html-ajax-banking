@@ -691,7 +691,7 @@
 
         page.dialogs.commands.doDelete = (id) => {
             const obj = {
-                deleted: 0
+                deleted: 1
             }
 
             return $.ajax({
@@ -738,7 +738,8 @@
                     recipientSelect.append($('<option>').val('').text('Select recipient'));
 
                     $.each(customers, function (index, customer) {
-                        if (customer.id !== customerId) {
+                        if (customer.id !== customerId && customer.deleted == 0) {
+                            
                             recipientSelect.append($('<option>').val(customer.id).text(customer.id + '-' + customer.fullName));
                         }
                     });
