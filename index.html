@@ -506,7 +506,7 @@
             })
         }
 
-        page.commands.HandleAddEventTransfer = () => {
+        page.commands.HandleAddEventTransfer = (customerI) => {
                 page.commands.getCustomerById(customerId).then((data) => {
                     if (data !== {} ) {
                         page.dialogs.elements.fullNameSent.val(data.fullName);
@@ -514,7 +514,7 @@
                         page.dialogs.elements.transactionAmountSent.val('');
                         page.dialogs.elements.transactionAmountSent.val('');
                         page.dialogs.elements.transactionAmountFee.val('');
-                        page.dialogs.elements.btnTransfer.modal('show');
+                        page.dialogs.elements.modalTransfer.modal('show');
                     }
                     else {
                         alert('Customer not found');
@@ -708,7 +708,7 @@
         
 
         $(document).ready(function () {
-            getCustomers();
+            page.commands.getCustomers();
         });
 
 
@@ -733,7 +733,7 @@
                 type: 'GET',
                 dataType: 'json',
                 success: function (customers) {
-                    var recipientSelect = page.dialogs.elements('#recipientSelect');
+                    var recipientSelect = $('#recipientSelect');
                     recipientSelect.empty();
                     recipientSelect.append($('<option>').val('').text('Select recipient'));
 
@@ -771,7 +771,7 @@
                 });
                 return;
             }
-            getCustomerById(recipientId)
+            page.commands.getCustomerById(recipientId)
                 .then((recipient) => {
                     let balanceAfterTransfer = balanceSent - transactionTotal;
                     if (balanceAfterTransfer < 0) {
@@ -782,7 +782,8 @@
                         });
                         return;
                     }
-                    getCustomerById(customerId)
+                    console.log(recipient)
+                    page.commands.getCustomerById(customerId)
                         .then((sender) => {
                             let senderData = {
                                 id: sender.id,
@@ -817,6 +818,7 @@
                                         recipientFullname: recipientData.fullName
                                     })
                                 }),
+                                
                                 $.ajax({
                                     type: 'PATCH',
                                     headers: {
@@ -832,21 +834,15 @@
                                         'accept': 'application/json',
                                         'content-type': 'application/json'
                                     },
-                                    url: 'http://localhost:3300/customers/' + recipientData.id,
+                                    url: 'http://localhost:3300/customers/' + recipientId,
                                     data: JSON.stringify(recipientData)
                                 })
                             ])
                                 .then(([transferRes, senderRes, recipientRes]) => {
-                                    let senderStr = renderCustomer(senderData);
-                                    let recipientStr = renderCustomer(recipientData);
+                                    let senderStr = page.commands.renderCustomer(senderData);
+                                    let recipientStr = page.commands.renderCustomer(recipientData);
                                     $('#tr_' + senderData.id).replaceWith(senderStr);
                                     $('#tr_' + recipientData.id).replaceWith(recipientStr);
-
-                                    handleAddEventShowModalUpdate();
-                                    handleAddEventShowModalDeposit();
-                                    handleAddEventConfirmDelete();
-                                    handleAddEventWithdraw();
-                                    HandleaddEventTransfer();
 
                                     $('#mdTransfer').modal('hide');
                                     Swal.fire({
@@ -898,8 +894,8 @@
 
             page.elements.tbCustomerBody.on('click', '.transfer' , function () {
                 customerId = $(this).data('id');
-                getCustomers(customerId);
-                page.commands.HandleAddEventTransfer
+                page.commands.getCustomers(customerId);
+                page.commands.HandleAddEventTransfer(customerId)
             })
 
             page.dialogs.elements.btnUpdate.on('click', () => {
